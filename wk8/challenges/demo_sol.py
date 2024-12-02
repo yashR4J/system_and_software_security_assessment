@@ -12,13 +12,12 @@ gdbscript = '''
 continue
 '''.format(**locals())
 
-
 ######################################
 ######## Establish Connection ########
 ######################################
 
 def connect_binary():
-    global P, E, GADGET
+    global P, E
     
     with context.local(log_level='error'):
         if args.REMOTE:
@@ -29,7 +28,6 @@ def connect_binary():
             P = process(f"{__file__.replace('_sol.py', '')}")
 
     E = ELF(f"{__file__.replace('_sol.py', '')}")
-    GADGET = lambda x: p64(next(E.search(asm(x, os='linux', arch=E.arch))))
 
 ######################################
 ############## Exploit ###############

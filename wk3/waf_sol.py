@@ -13,7 +13,7 @@ from pwn import *
 import argparse
 
 HOST = "6447.lol"
-PORT = 6192
+PORT = 3004
 
 context.arch = "amd64"
 

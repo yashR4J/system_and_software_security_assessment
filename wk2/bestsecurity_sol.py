@@ -2,8 +2,8 @@
 
 from pwn import *
 
-# p = process("./bestsecurity")
-p = remote("6447.lol", 14860)
+p = process("./bestsecurity")
+# p = remote("6447.lol", 14860)
 
 p.recvuntil(b"...\n")
 

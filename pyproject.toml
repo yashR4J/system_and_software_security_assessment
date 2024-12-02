@@ -1,0 +1,10 @@
+[tool.poetry]
+name = "system-and-software-security-assessment"
+version = "0.1.0"
+description = ""
+authors = ["yashR4J <yash.raj2@outlook.com>"]
+readme = "README.md"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

